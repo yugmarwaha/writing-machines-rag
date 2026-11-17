@@ -1,2 +1,7 @@
+# Pipeline
+numpy
+ollama
+
+# Archive converter (scripts/convert_archive.py)
 pandas
 openpyxl
