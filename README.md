@@ -1,27 +1,86 @@
 # Writing Machines RAG
 
-A collaborative project for English 178: Writing Machines. We’re building a chatbot that answers questions about our class fragment archive and cites the fragments it uses.
+A collaborative project for English 178: Writing Machines. A command-line chatbot that answers questions about our class fragment archive, using a small open-weight model running locally, and cites the fragments it uses.
 
-**Status:** Planning. The pipeline and setup instructions are forthcoming.
+**Status:** Working command-line pipeline (Nov 17). Benchmarking and a chat interface (separate teammate) are next.
 
-## Planned pipeline
+## Setup (Mac or Windows, 16 GB RAM is enough)
 
-1. **Archive preparation.** Convert archive entries into records that preserve fragment IDs, contributors, quotations, and annotations.
-2. **Retrieval.** Embed the fragment text and build a searchable index. Retrieve relevant fragments for a question, with the option to filter by contributor.
-3. **Answer generation.** Pass the retrieved text and fragment IDs to an existing open-weight language model running locally. Ask the model to explain its interpretation and cite the fragments that support it.
+1. **Install Python 3.10+** from [python.org](https://www.python.org/downloads/) (on Windows, tick “Add Python to PATH”).
+2. **Install Ollama** from [ollama.com/download](https://ollama.com/download) (Mac: or `brew install ollama && brew services start ollama`). It runs in the background on `localhost:11434`.
+3. **Download the models** (about 2.3 GB total):
+   ```
+   ollama pull nomic-embed-text
+   ollama pull llama3.2:3b
+   ```
+4. **Set up Python** in the repo folder:
 
-The initial plan is to run the model on a MacBook. The specific model and runtime are still open.
+   | Mac / Linux | Windows (PowerShell) |
+   | --- | --- |
+   | `python3 -m venv .venv` | `py -m venv .venv` |
+   | `source .venv/bin/activate` | `.venv\Scripts\Activate.ps1` |
+   | `pip install -r requirements.txt` | `pip install -r requirements.txt` |
+
+5. **Build the index** (once, and again whenever `data/fragments.jsonl` changes): `python -m rag build`
+6. **Check it works:** `python -m rag ask "Can a machine understand meaning?"` should list 5 fragments, then an answer (about 20 s on an M4 MacBook Air), then `Cited: [...]`.
+
+We use Ollama installed directly, not Docker: Docker on a Mac can't use the GPU, and Docker Desktop takes RAM on 16 GB laptops.
+
+Tested Nov 17 on macOS (Apple M4, 24 GB) with Python 3.14, Ollama 0.40, numpy 2.5, ollama (Python) 0.6, pandas 3.1, openpyxl 3.1. Windows steps are written but untested; teammates on Windows set up on their own.
+
+### Troubleshooting
+
+| Message or problem | Fix |
+| --- | --- |
+| `Can't reach Ollama on localhost:11434` | Open the Ollama app, or run `ollama serve` in another terminal. |
+| `Model not downloaded` | Run the `ollama pull` commands from step 3. |
+| `No index found` / `Index is out of date` | Run `python -m rag build`. |
+| Windows: `Activate.ps1 cannot be loaded … running scripts is disabled` | Run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, then activate again. |
+| Windows: `python` opens the Microsoft Store | Use `py` instead of `python`, or reinstall Python with “Add to PATH” ticked. |
+| Answers are very slow | Close other apps; the model needs about 3 GB of free RAM. |
+
+### Updating the data
+
+When a new spreadsheet export arrives, replace `writing_machines.xlsx`, then run `python scripts/convert_archive.py` and `python -m rag build`.
+
+## Usage
+
+```
+python -m rag ask "Can a machine understand meaning or only compute it?"
+python -m rag ask "What recurring concern shapes these quotations?" --entrant "Yug Marwaha"
+python -m rag ask "What recurring concern shapes these quotations?" --entrant "Yug Marwaha" --all
+python -m rag ask "..." -k 8
+```
+
+The output lists the retrieved fragments with similarity scores, the model's answer, the fragment numbers it cited, and a warning if it cited a fragment it wasn't given. Fragment numbers match the “Fragment No.” on the [class archive website](https://amarella1697.github.io/ENGL-178-Writing-Machines-Website/).
+
+| Option | Effect |
+| --- | --- |
+| `--entrant NAME` | Only search one contributor's fragments (not case-sensitive). |
+| `--all` | With `--entrant`: skip retrieval and give the model all of that contributor's fragments. |
+| `-k N` | Retrieve N fragments instead of 5. |
+
+## Pipeline
+
+1. **Archive preparation.** [scripts/convert_archive.py](scripts/convert_archive.py) turns `writing_machines.xlsx` into [data/fragments.jsonl](data/fragments.jsonl).
+2. **Retrieval.** Each fragment + annotation is embedded with `nomic-embed-text`; a question's embedding is compared against all of them (cosine similarity) and the top 5 are kept.
+3. **Answer generation.** The retrieved fragments go into the prompt for `llama3.2:3b`, which is told to use only them and cite them as `[#112]`.
+
+## Repository map
+
+AI agents: start with [AGENTS.md](AGENTS.md). Every folder has a README that explains its files and decisions. Read the folder's README before its code, and update it in the same change when the code or a decision changes.
+
+| Folder | README |
+| --- | --- |
+| `rag/` | [Pipeline modules, how retrieval works, settings and who decided them](rag/README.md) |
+| `scripts/` | [Archive converter](scripts/README.md) |
+| `data/` | [JSONL fields and numbering](data/README.md) |
+| `indexes/` | Generated by `python -m rag build`; gitignored. |
 
 ## Collaboration and evaluation
 
-All three students will build the shared pipeline together. Once it works, each student will use it to investigate a different research question and evaluate their own results.
+All three students built the shared pipeline together. Each student will use it to investigate a different research question and evaluate their own results.
 
-One planned study asks whether the chatbot can find an idea that keeps coming up in a contributor’s fragments and explain how it might have influenced the quotes they picked. It will compare the same model’s answers when given all of that contributor’s fragments, if they fit, and when given only a retrieved subset. Each answer will be checked for support from at least two specific fragments.
+One planned study asks whether the chatbot can find an idea that keeps coming up in a contributor's fragments and explain how it might have influenced the quotes they picked. It compares the same model's answers when given all of that contributor's fragments (`--all`) and only a retrieved subset. Each answer is checked for support from at least two specific fragments.
 
-## Archive
-
-[Writing Machines class fragment archive](https://amarella1697.github.io/ENGL-178-Writing-Machines-Website/)
-
-## Next steps
-
-See [TODO.md](TODO.md) for the planned files and build checklist.
+See [TODO.md](TODO.md) for remaining work.
