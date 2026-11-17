@@ -26,4 +26,4 @@ There is no test suite yet. Steps 2–3 are the check.
 
 ## Open items
 
-See [TODO.md](TODO.md). The chat model (`llama3.2:3b`) is confirmed; the embedding model is provisional. Teammates test Windows setup themselves. Saving `--all` and retrieved answers side by side for benchmarking is a possible next step.
+See [TODO.md](TODO.md). Both models are confirmed (`llama3.2:3b`, `nomic-embed-text`); temperature 0.2 and seed 42 are still provisional. Teammates test Windows setup themselves. Saving `--all` and retrieved answers side by side for benchmarking is a possible next step.

@@ -26,10 +26,10 @@ Question in → relevant fragments retrieved → local model answers and cites t
 | Setting | Value | Why |
 | --- | --- | --- |
 | Runtime | Ollama, installed natively, no Docker | Runs on Mac and Windows; on Mac, Docker can't use the Apple GPU, and Docker Desktop costs RAM on 16 GB laptops. Docker only if we deploy. Code talks to `localhost:11434` either way. |
-| Index | NumPy matrix, no vector DB | 161 fragments; searching them all is instant. |
+| Index | NumPy matrix, no vector DB | 161 fragments; searching them all is instant. A vector database (pgvector, Chroma) would add a server to install for no gain at this size. |
 | Fragment IDs | Website "Fragment No." (`id` in the JSONL) | What readers see on the site. |
 | Top-k | 5 | Starting point; benchmark can compare others. |
-| Embedding model | `nomic-embed-text` (274 MB) | **Provisional (Claude's pick).** Small, common, runs anywhere. Needs the `search_document:`/`search_query:` prefixes. |
+| Embedding model | `nomic-embed-text` (274 MB) | Confirmed by Yug (Nov 17). Small, common, runs anywhere. Revisit only if benchmarking shows retrieval missing obvious fragments. Needs the `search_document:`/`search_query:` prefixes. |
 | Chat model | `llama3.2:3b` (2 GB) | Confirmed by Yug (Nov 17): enough for a ~160-fragment archive; fits 16 GB RAM easily. |
 | Temperature / seed | 0.2 / 42 | **Provisional (Claude's pick).** Repeatable benchmark runs. |
 

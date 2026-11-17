@@ -30,7 +30,7 @@ The course project drafts are on November 16 and 20. Clarify whether “archive 
 - [x] Add a dependency file once the team chooses a language and libraries.
 - [x] Update the [README](README.md) with installation steps, the model and runtime used, and a sample question with the command to run it.
 - [ ] Reyansh and Arvind set up from the README on their own laptops (they handle Windows themselves).
-- [x] Chat model: `llama3.2:3b` (confirmed Nov 17; no 4B comparison). Embedding model `nomic-embed-text` is still provisional.
+- [x] Chat model: `llama3.2:3b` (confirmed Nov 17; no 4B comparison). Embedding model `nomic-embed-text` confirmed Nov 17.
 - [ ] Run one sample question together and check that the cited IDs match the fragments the model received. (The CLI now warns automatically; also check that each citation's *content* matches — the Nov 17 smoke test misdescribed #97.)
 - [ ] Command-line only for now; a chat interface belongs to another teammate.
 
